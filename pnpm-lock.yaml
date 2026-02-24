@@ -6,7 +6,7 @@ settings:
 
 importers:
 
-  .:
+  services/user-service:
     dependencies:
       drizzle-orm:
         specifier: ^0.45.1
