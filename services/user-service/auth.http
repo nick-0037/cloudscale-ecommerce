@@ -1,0 +1,48 @@
+@baseUrl = http://localhost:3000/auth
+@email = test@example.com
+@password = Password123!
+
+### 1. Register a new user
+POST {{baseUrl}}/register
+Content-Type: application/json
+
+{
+    "email": "{{email}}",
+    "password": "{{password}}",
+    "name": "Test User"
+}
+
+### 2. Login
+# @name login
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+    "email": "{{email}}",
+    "password": "{{password}}"
+}
+
+### Capture token from login response
+@authToken = {{login.response.body.data.token}}
+
+### 3. Get My Profile (Protected)
+GET {{baseUrl}}/me
+Authorization: Bearer {{authToken}}
+
+### 4. Update My Profile (Protected)
+PATCH {{baseUrl}}/me
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "name": "Updated Name"
+}
+
+### 5. Login with wrong credentials (should fail)
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+{
+    "email": "{{email}}",
+    "password": "wrongpassword"
+}
