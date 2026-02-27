@@ -2,14 +2,17 @@
 	// Visit https://aka.ms/tsconfig to read more about this file
 	"compilerOptions": {
 		// File Layout
-		"rootDir": "./",
+		"baseUrl": ".",
+		"paths": {
+			"@cloudscale/shared": ["../../packages/shared/src/index.ts"]
+		},
 		"outDir": "./dist",
 
 		// Environment Settings
 		// See also https://aka.ms/tsconfig/module
-		"module": "nodenext",
+		"module": "esnext",
 		"target": "esnext",
-		"moduleResolution": "nodenext",
+		"moduleResolution": "bundler",
 		"types": ["node"],
 
 		// Extras debugging options
@@ -20,6 +23,8 @@
 		"strict": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
+		"noEmit": true,
+		"isolatedModules": true,
 		"forceConsistentCasingInFileNames": true
 	},
 	"include": ["src/**/*", "drizzle.config.ts"],
