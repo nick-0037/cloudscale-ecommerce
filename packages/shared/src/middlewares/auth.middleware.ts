@@ -2,13 +2,18 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { AppError } from "../utils/errors";
 
-export interface AuthRequest extends Request {
-	user?: {
-		id: number;
-	};
+// Declaration Merging
+declare global {
+	namespace Express {
+		interface Request {
+			user?: {
+				id: number;
+			};
+		}
+	}
 }
 
-export const auth = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const auth = (req: Request, res: Response, next: NextFunction) => {
 	const authHeader = req.headers.authorization;
 
 	if (!authHeader?.startsWith("Bearer ")) {
