@@ -1,9 +1,11 @@
 import { pgTable, serial, text, varchar, timestamp } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
-  password: text("password").notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
+	id: serial("id").primaryKey(),
+	name: text("name").notNull(),
+	email: varchar("email", { length: 255 }).notNull().unique(),
+	password: text("password").notNull(),
+	createdAt: timestamp("created_at").defaultNow(),
 });
+
+export type User = typeof users.$inferSelect;

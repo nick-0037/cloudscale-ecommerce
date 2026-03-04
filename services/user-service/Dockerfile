@@ -1,33 +1,22 @@
-FROM node:22-alpine AS builder
-
-RUN npm install -g pnpm
-
-WORKDIR /app
-
-# Copy workspace config files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-
-# Copy shared package
-COPY packages/shared ./packages/shared
-
-# Copy service
-COPY services/user-service ./services/user-service
-
-RUN pnpm install --frozen-lockfile
-
-WORKDIR /app/services/user-service
-RUN pnpm build
-
-# Production stage
+# 1. Base Image
 FROM node:22-alpine
 
+# 2. Global Dependencies
+RUN npm install -g pnpm typescript tsx
+
+# 3. Project Configuration
 WORKDIR /app
+ENV CI=true
 
-COPY --from=builder /app/services/user-service/dist ./dist
-COPY --from=builder /app/services/user-service/package.json ./
-COPY --from=builder /app/services/user-service/node_modules ./node_modules
-COPY --from=builder /app/packages/shared ./packages/shared
+# 4. Copy and Install
+COPY . .
+RUN pnpm install --frozen-lockfile
 
+# 5. Service Specific Configuration
+WORKDIR /app/services/user-service
+
+# 6. Runtime
 EXPOSE 3000
 
-CMD ["node", "dist/index.js"]
+# Development mode with hot-reload
+CMD ["tsx", "watch", "src/index.ts"]

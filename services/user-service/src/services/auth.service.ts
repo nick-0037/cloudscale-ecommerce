@@ -1,5 +1,5 @@
 import { PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import { users } from "../db/schema";
+import { users, User } from "../db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -10,9 +10,28 @@ import {
 } from "../schemas/auth.schema";
 import { AppError } from "@cloudscale/shared";
 
+export type AuthResponse = {
+	user: Omit<User, "password">;
+	token?: string;
+};
+
+export type IUserService = {
+	// Auth
+	register: (userData: RegisterInput) => Promise<AuthResponse>;
+	login: (userData: LoginInput) => Promise<AuthResponse>;
+	
+	// Manage profiles
+	getProfile: (userId: number) => Promise<AuthResponse>;
+	updateProfile: (
+		userId: number,
+		data: UpdateProfileInput,
+	) => Promise<AuthResponse>;
+};
+
 export const createUserService = (
 	db: PostgresJsDatabase<Record<string, unknown>>,
-) => ({
+): IUserService => ({
+	// Auth
 	register: async (userData: RegisterInput) => {
 		const [existingUser] = await db
 			.select()
@@ -28,7 +47,8 @@ export const createUserService = (
 		const [user] = await db
 			.insert(users)
 			.values({
-				...userData,
+				name: userData.name,
+				email: userData.email,
 				password: hashedPassword,
 			})
 			.returning();
@@ -58,6 +78,8 @@ export const createUserService = (
 		const { password: _, ...userWithoutPassword } = user;
 		return { user: userWithoutPassword, token };
 	},
+
+	// manage profiles
 	getProfile: async (userId: number) => {
 		const [user] = await db
 			.select()
@@ -87,5 +109,3 @@ export const createUserService = (
 		return { user: userWithoutPassword };
 	},
 });
-
-export type IUserService = ReturnType<typeof createUserService>;
