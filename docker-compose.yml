@@ -1,21 +1,63 @@
 services:
-  user-service:
-    build:
-      context: ./services/user-service
-      dockerfile: Dockerfile
-    container_name: user-service
+  consul:
+    image: hashicorp/consul:latest
     ports:
-      - "3001:3000"
-    environment:
-      - PORT=3000
-      - NODE_ENV=development
-      - DATABASE_URL=${DATABASE_URL}
+      - "8500:8500"
+      - "8600:8600/tcp"
+      - "8600:8600/udp"
+    command: "agent -server -bootstrap -ui -client=0.0.0.0"
+    healthcheck:
+      test: ["CMD", "consul", "members"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     networks:
       - ecommerce-net
 
-  db:
+
+  user-service:
+    build:
+      context: .
+      dockerfile: services/user-service/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - SERVICE_NAME=user-service
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      user-db:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    networks:
+      - ecommerce-net
+  
+  product-service:
+    build:
+      context: .
+      dockerfile: services/product-service/Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - CONSUL_HOST=consul
+      - CONSUL_PORT=8500
+      - SERVICE_NAME=product-service
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      product-db:
+        condition: service_healthy
+      consul:
+        condition: service_healthy
+    networks:
+      - ecommerce-net
+
+
+  user-db:
     image: postgres:latest
-    container_name: user-db
     environment:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
@@ -25,10 +67,27 @@ services:
     networks:
       - ecommerce-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-postgres}"]
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+
+  product-db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "5434:5432"
+    networks:
+      - ecommerce-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres} -d $${POSTGRES_DB:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
 
 networks:
   ecommerce-net:
