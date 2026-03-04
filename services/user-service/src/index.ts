@@ -1,5 +1,10 @@
 import express from "express";
-import { globalErrorHandler, ConsulClient } from "@cloudscale/shared";
+import {
+	globalErrorHandler,
+	ConsulClient,
+	requestLogger,
+	logger,
+} from "@cloudscale/shared";
 import { db } from "./db/index";
 import { createUserService } from "./services/auth.service";
 import { createUserController } from "./controllers/auth.controller";
@@ -8,6 +13,7 @@ import { createAuthRouter } from "./routes/auth.routes";
 const app = express();
 
 app.use(express.json());
+app.use(requestLogger);
 
 app.get("/health", (req, res) => res.status(200).json({ status: "UP" }));
 
@@ -25,7 +31,7 @@ const SERVICE_ID = `${SERVICE_NAME}-${PORT}`;
 const consul = new ConsulClient();
 
 app.listen(PORT, async () => {
-	console.log(`User service is running on port ${PORT}`);
+	logger.info(`${SERVICE_NAME} is running on port ${PORT}`);
 	await consul.register(SERVICE_NAME, PORT, SERVICE_ID);
 });
 
