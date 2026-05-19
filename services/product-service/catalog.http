@@ -1,0 +1,108 @@
+@baseUrl = http://localhost:3001/api/products
+@authUrl = http://localhost:3000/auth
+@email = test@example.com
+@password = Password123!
+
+### 1. Login to get token (from User Service)
+# @name login
+POST {{authUrl}}/login
+Content-Type: application/json
+
+{
+    "email": "{{email}}",
+    "password": "{{password}}"
+}
+
+### Capture token
+@authToken = {{login.response.body.data.token}}
+
+#######################################
+# CATEGORIES
+#######################################
+
+### 2. Create a Category (Protected)
+# @name createCategory
+POST {{baseUrl}}/categories
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "name": "Electronics",
+    "slug": "electronics",
+    "description": "Electronic devices and gadgets"
+}
+
+###
+@categoryId = {{createCategory.response.body.data.id}}
+
+### 3. List Categories
+GET {{baseUrl}}/categories
+
+#######################################
+# PRODUCTS
+#######################################
+
+### 4. Create a Product (Protected)
+# @name createProduct
+POST {{baseUrl}}/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "name": "Smartphone CloudScale X",
+    "slug": "smartphone-cloudscale-x",
+    "description": "The most powerful smartphone in the cloud",
+    "price": "999.99",
+    "categoryId": {{categoryId}},
+    "imageUrl": "https://example.com/phone.jpg",
+    "attributes": {
+        "color": "Midnight Black",
+        "storage": "256GB",
+        "ram": "12GB"
+    },
+    "initialStock": 50
+}
+
+###
+@productId = {{createProduct.response.body.data.id}}
+
+### 5. List all products
+GET {{baseUrl}}/
+
+### 6. Get a single product
+GET {{baseUrl}}/{{productId}}
+
+### 7. Update a product (Protected)
+PATCH {{baseUrl}}/{{productId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "name": "Smartphone CloudScale X Pro",
+    "price": "1099.99",
+    "attributes": {
+        "color": "Midnight Black",
+        "storage": "512GB",
+        "ram": "16GB"
+    }
+}
+
+#######################################
+# INVENTORY
+#######################################
+
+### 8. Get Product Stock
+GET {{baseUrl}}/inventory/{{productId}}
+
+### 9. Update Product Stock (Protected)
+PATCH {{baseUrl}}/inventory/{{productId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "quantity": 45
+}
+
+### 10. Delete a product (Protected)
+DELETE {{baseUrl}}/{{productId}}
+Authorization: Bearer {{authToken}}

@@ -1,0 +1,26 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@cloudscale/shared": ["../../packages/shared/src/index.ts"]
+		},
+		"outDir": "./dist",
+
+		"module": "esnext",
+		"target": "esnext",
+		"moduleResolution": "bundler",
+		"types": ["node"],
+
+		"sourceMap": true,
+		"declaration": true,
+
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"noEmit": false,
+		"isolatedModules": true,
+		"forceConsistentCasingInFileNames": true
+	},
+	"include": ["src/**/*", "drizzle.config.ts"],
+	"exclude": ["node_modules", "dist"]
+}
